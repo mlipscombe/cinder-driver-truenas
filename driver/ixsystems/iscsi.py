@@ -15,7 +15,7 @@ from oslo_log import log as logging
 from cinder.volume import driver
 from cinder.volume.drivers.ixsystems.freenasapi import FreeNASApiError
 from cinder.volume.drivers.ixsystems.freenasapi import FreeNASServer
-from cinder.volume.drivers.ixsystems.options import ixsystems_basicauth_opts
+from cinder.volume.drivers.ixsystems.options import ixsystems_auth_opts
 from cinder.volume.drivers.ixsystems.options import ixsystems_connection_opts
 from cinder.volume.drivers.ixsystems.options import ixsystems_provisioning_opts
 from cinder.volume.drivers.ixsystems.options import ixsystems_transport_opts
@@ -33,7 +33,7 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 CONF.register_opts(ixsystems_connection_opts)
 CONF.register_opts(ixsystems_transport_opts)
-CONF.register_opts(ixsystems_basicauth_opts)
+CONF.register_opts(ixsystems_auth_opts)
 CONF.register_opts(ixsystems_provisioning_opts)
 
 
@@ -42,9 +42,8 @@ class FreeNASISCSIDriver(driver.ISCSIDriver):
 
     VERSION = "2.0.0"
     IGROUP_PREFIX = 'openstack-'
-    
-    required_flags = ['ixsystems_transport_type', 'ixsystems_login',
-                      'ixsystems_password', 'ixsystems_server_hostname',
+
+    required_flags = ['ixsystems_transport_type', 'ixsystems_server_hostname',
                       'ixsystems_server_port', 'ixsystems_server_iscsi_port',
                       'ixsystems_volume_backend_name', 'ixsystems_vendor_name', 'ixsystems_storage_protocol',
                       'ixsystems_datastore_pool', 'ixsystems_dataset_path', 'ixsystems_iqn_prefix', ]
@@ -55,7 +54,7 @@ class FreeNASISCSIDriver(driver.ISCSIDriver):
         LOG.info('iXsystems: Init Cinder Driver')
         super(FreeNASISCSIDriver, self).__init__(*args, **kwargs)
         self.configuration.append_config_values(ixsystems_connection_opts)
-        self.configuration.append_config_values(ixsystems_basicauth_opts)
+        self.configuration.append_config_values(ixsystems_auth_opts)
         self.configuration.append_config_values(ixsystems_transport_opts)
         self.configuration.append_config_values(ixsystems_provisioning_opts)
         self.configuration.ixsystems_iqn_prefix += ':'

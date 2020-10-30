@@ -41,8 +41,9 @@ Configure the Cinder driver. Open **/etc/cinder/cinder.conf** in an editor to bo
  iscsi_helper = <iscsi helper type. Standard Value>
  volume_dd_blocksize = <block size>
  volume_driver = <Path of the main class of iXsystems cinder driver. The standard value for this driver is cinder.volume.drivers.ixsystems.iscsi.FreeNASISCSIDriver>
- ixsystems_login = <username of TrueNAS/FreeNAS Host - currently needs to be root>
+ ixsystems_login = <username of TrueNAS/FreeNAS Host - currently needs to be root unless an API key is used>
  ixsystems_password = <Password of TrueNAS/FreeNAS Host - the root password>
+ ixsystems_api_key = <API key - use instead of login/password if desired>
  ixsystems_server_hostname = <IP Address of TrueNAS Host>
  ixsystems_volume_backend_name = <driver specific information. Standard value is 'iXsystems_TRUENAS_Storage' >
  ixsystems_iqn_prefix = <Base name of ISCSI Target. (Get it from the web UI of the connected TrueNAS system by navigating: Sharing -> Block(iscsi) -> Target Global Configuration -> Base Name)>
@@ -59,8 +60,7 @@ Here is an example configuration:
  iscsi_helper = tgtadm
  volume_dd_blocksize = 512
  volume_driver = cinder.volume.drivers.ixsystems.iscsi.FreeNASISCSIDriver
- ixsystems_login = root
- ixsystems_password = thisisdummypassword
+ ixsystems_api_key = 2-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
  ixsystems_server_hostname = 100.1.2.34
  ixsystems_volume_backend_name = iXsystems_FREENAS_Storage
  ixsystems_iqn_prefix = iqn.2005-10.org.freenas.ctl

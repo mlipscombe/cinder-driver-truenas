@@ -22,6 +22,7 @@ class FreeNASServer(object):
     FREENAS_API_VERSION = "v2.0"
     TRANSPORT_TYPE = 'http'
     STYLE_LOGIN_PASSWORD = 'basic_auth'
+    STYLE_API_KEY = 'api_key'
 
     # FREENAS Commands
     SELECT_COMMAND = 'select'
@@ -50,6 +51,7 @@ class FreeNASServer(object):
 
     def __init__(self, host, port,
                  username=None, password=None,
+                 api_key=None,
                  api_version=FREENAS_API_VERSION,
                  transport_type=TRANSPORT_TYPE,
                  style=STYLE_LOGIN_PASSWORD):
@@ -57,6 +59,7 @@ class FreeNASServer(object):
         self._port = port
         self._username = username
         self._password = password
+        self.set_api_key(api_key)
         self.set_api_version(api_version)
         self.set_transport_type(transport_type)
         self.set_style(style)
@@ -91,6 +94,9 @@ class FreeNASServer(object):
     def set_password(self, password):
         self._password = password
 
+    def set_api_key(self, api_key):
+        self._api_key = api_key
+
     def set_api_version(self, api_version):
         self._api_version = api_version
 
@@ -101,7 +107,7 @@ class FreeNASServer(object):
         """Set the authorization style for communicating with the server.
            Supports basic_auth for now.
         """
-        if style.lower() not in (FreeNASServer.STYLE_LOGIN_PASSWORD):
+        if style.lower() not in (FreeNASServer.STYLE_LOGIN_PASSWORD, FreeNASServer.STYLE_API_KEY):
             raise ValueError('Unsupported authentication style')
         self._auth_style = style.lower()
 
@@ -117,14 +123,19 @@ class FreeNASServer(object):
 
     def _create_request(self, request_d, param_list):
         """Creates urllib2.Request object."""
-        if not self._username or not self._password:
+        if self._auth_style == FreeNASServer.STYLE_LOGIN_PASSWORD and (not self._username or not self._password):
             raise ValueError("Invalid username/password combination")
-        loginstring = ("%s:%s" % (self._username, self._password))
-        bloginstring = bytes(loginstring, encoding='utf8')
-        bauth = base64.b64encode(bloginstring)
-        auth = bauth.decode("utf8")
-        headers = {'Content-Type': 'application/json',
-                   'Authorization': 'Basic %s' % (auth,)}
+        if self._auth_style == FreeNASServer.STYLE_API_KEY and not self._api_key:
+            raise ValueError("API key is not set")
+        headers = {'Content-Type': 'application/json'}
+        if self._auth_style == FreeNASServer.STYLE_LOGIN_PASSWORD:
+            loginstring = ("%s:%s" % (self._username, self._password))
+            bloginstring = bytes(loginstring, encoding='utf8')
+            bauth = base64.b64encode(bloginstring)
+            auth = bauth.decode("utf8")
+            headers['Authorization'] = 'Basic %s' % (auth,)
+        elif self._auth_style == FreeNASServer.STYLE_API_KEY:
+            headers['Authorization'] = 'Bearer %s' % (self._api_key)
         url = self.get_url() + request_d
         LOG.debug('url : %s, request: %s', url, request_d)
         LOG.debug('param list : %s', param_list)

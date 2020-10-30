@@ -34,13 +34,17 @@ ixsystems_transport_opts = [
                default='http',
                help='Transport type protocol'), ]
 
-ixsystems_basicauth_opts = [
+ixsystems_auth_opts = [
     cfg.StrOpt('ixsystems_login',
                default='root',
                help='User name for the storage controller'),
     cfg.StrOpt('ixsystems_password',
                default='ixsystems',
                help='Password for the storage controller',
+               secret=True),
+    cfg.StrOpt('ixsystems_api_key',
+               default='ixsystems',
+               help='API key for the storage controller',
                secret=True), ]
 
 ixsystems_provisioning_opts = [

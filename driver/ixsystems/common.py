@@ -19,8 +19,7 @@ class TrueNASCommon(object):
     VERSION = "2.0.0"
     IGROUP_PREFIX = 'openstack-'
 
-    required_flags = ['ixsystems_transport_type', 'ixsystems_login',
-                      'ixsystems_password', 'ixsystems_server_hostname',
+    required_flags = ['ixsystems_transport_type', 'ixsystems_server_hostname',
                       'ixsystems_server_port', 'ixsystems_server_iscsi_port',
                       'ixsystems_volume_backend_name', 'ixsystems_vendor_name', 'ixsystems_storage_protocol',
                       'ixsystems_datastore_pool', 'ixsystems_dataset_path', 'ixsystems_iqn_prefix', ]
@@ -38,15 +37,19 @@ class TrueNASCommon(object):
         """
         host_system = kwargs['hostname']
         LOG.debug('Using iXsystems FREENAS server: %s', host_system)
+        auth_style = FreeNASServer.STYLE_LOGIN_PASSWORD
+        if kwargs['api_key']:
+            auth_style = FreeNASServer.STYLE_API_KEY
         self.handle = FreeNASServer(host=host_system,
                                  port=kwargs['port'],
                                  username=kwargs['login'],
                                  password=kwargs['password'],
+                                 api_key=kwargs['api_key'],
                                  api_version=kwargs['api_version'],
                                  transport_type=kwargs['transport_type'],
-                                 style=FreeNASServer.STYLE_LOGIN_PASSWORD)
+                                 style=auth_style)
         if not self.handle:
-            raise FreeNASApiError("Failed to create handle for FREENAS server")    
+            raise FreeNASApiError("Failed to create handle for FREENAS server")
 
     def _check_flags(self):
         """Check if any required iXsystems FREENAS configuration flag is missing."""
@@ -54,6 +57,11 @@ class TrueNASCommon(object):
             if not getattr(self.configuration, flag, None):
                 print("missing flag :", flag)
                 raise exception.CinderException(_('%s is not set') % flag)
+        if not getattr(self.configuration, 'ixsystems_api_key'):
+            for flag in ['ixsystems_login', 'ixsystems_password']:
+                if not getattr(self.configuration, flag, None):
+                    print("missing flag :", flag)
+                    raise exception.CinderException(_('%s is not set and ixsystems_api_key is not set') % flag)
 
     def _do_custom_setup(self):
         """Setup iXsystems FREENAS driver."""
@@ -61,6 +69,7 @@ class TrueNASCommon(object):
                             port=self.configuration.ixsystems_server_port,
                             login=self.configuration.ixsystems_login,
                             password=self.configuration.ixsystems_password,
+                            api_key=self.configuration.ixsystems_api_key,
                             api_version=self.configuration.ixsystems_api_version,
                             transport_type=
                             self.configuration.ixsystems_transport_type)
