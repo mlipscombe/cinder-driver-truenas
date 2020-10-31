@@ -362,9 +362,7 @@ class TrueNASCommon(object):
         """Retrieve stats info from volume group
             REST API: $ GET /pools/mypool "size":95,"allocated":85,
         """
-        # HACK: for now, use an API v1.0 call to get these stats until available in v2.0 API
-        self.handle.set_api_version('v1.0')
-        request_urn = ('%s/%s/') % ('/storage/volume', self.configuration.ixsystems_datastore_pool)
+        request_urn = ('%s/%s/') % ('/pool/dataset/id', self.configuration.ixsystems_datastore_pool)
         LOG.debug('_update_volume_stats request_urn : %s', request_urn)
         ret = self.handle.invoke_command(FreeNASServer.SELECT_COMMAND,
                                          request_urn, None)
@@ -374,15 +372,17 @@ class TrueNASCommon(object):
         data["vendor_name"] =  self.vendor_name
         data["driver_version"] = self.VERSION
         data["storage_protocol"] = self.storage_protocol
-        data['total_capacity_gb'] = ix_utils.get_size_in_gb(json.loads(ret['response'])['avail'] + json.loads(ret['response'])['used'])
-        data['free_capacity_gb'] = ix_utils.get_size_in_gb(json.loads(ret['response'])['avail'])
+        parsed_ret = json.loads(ret['response'])
+        free_capacity = parsed_ret['available']['parsed']
+        total_capacity = parsed_ret['used']['parsed'] + free_capacity
+        data['total_capacity_gb'] = ix_utils.get_size_in_gb(total_capacity)
+        data['free_capacity_gb'] = ix_utils.get_size_in_gb(free_capacity)
         data['reserved_percentage'] = \
             self.configuration.ixsystems_reserved_percentage
         data['reserved_percentage'] = 0
         data['QoS_support'] = False
 
         self.stats = data
-        self.handle.set_api_version('v2.0') # set back to v2.0 api for other calls...
         return self.stats
 
     def _create_cloned_volume_to_snapshot_map(self, volume_name, snapshot):
