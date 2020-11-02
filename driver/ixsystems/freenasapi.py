@@ -204,7 +204,7 @@ class FreeNASServer(object):
             LOG.debug("invoke_command : response for request %s : %s", request_d, json.dumps(response))
         except urllib.error.HTTPError as e:
             # LOG the error message received from FreeNAS/TrueNAS: https://github.com/iXsystems/cinder/issues/11
-            LOG.info('Error returned from server: "%s"', json.loads(e.read().decode('utf8'))['message'])
+            LOG.info('Error returned from server: "%s"', json.loads(e.read().decode('utf8')))
             error_d = self._get_error_info(e)
             if error_d:
                 return error_d
