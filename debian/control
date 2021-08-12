@@ -1,0 +1,14 @@
+Source: cinder-driver-truenas
+Section: python
+Priority: optional
+Maintainer: Mark Lipscombe <mark@lipscombe.com>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
+Homepage: https://github.com/mlipscombe/cinder-driver-truenas
+
+Package: cinder-driver-truenas
+Architecture: all
+Depends:
+ python3-cinder,
+ ${misc:Depends},
+Description: Cinder volume driver for TrueNAS 12
