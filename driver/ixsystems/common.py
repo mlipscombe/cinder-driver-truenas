@@ -357,26 +357,24 @@ class TrueNASCommon(object):
         except Exception as e:
             raise FreeNASApiError('Unexpected error', e)
 
-
     def _update_volume_stats(self):
         """Retrieve stats info from volume group
             REST API: $ GET /pools/mypool "size":95,"allocated":85,
         """
-        request_urn = ('%s/%s/') % ('/pool/dataset/id', self.configuration.ixsystems_datastore_pool)
+        request_urn = ('%s/id/%s') % (FreeNASServer.REST_API_VOLUME,
+            urllib.parse.quote_plus(self.configuration.ixsystems_dataset_path))
         LOG.debug('_update_volume_stats request_urn : %s', request_urn)
         ret = self.handle.invoke_command(FreeNASServer.SELECT_COMMAND,
-                                         request_urn, None)
+                                     request_urn, None)
         LOG.debug("_update_volume_stats response : %s", json.dumps(ret))
         data = {}
         data["volume_backend_name"] = self.backend_name
         data["vendor_name"] =  self.vendor_name
         data["driver_version"] = self.VERSION
         data["storage_protocol"] = self.storage_protocol
-        parsed_ret = json.loads(ret['response'])
-        free_capacity = parsed_ret['available']['parsed']
-        total_capacity = parsed_ret['used']['parsed'] + free_capacity
-        data['total_capacity_gb'] = ix_utils.get_size_in_gb(total_capacity)
-        data['free_capacity_gb'] = ix_utils.get_size_in_gb(free_capacity)
+        data['total_capacity_gb'] = ix_utils.get_size_in_gb(json.loads(ret['response'])['available']['parsed'] \
+            + json.loads(ret['response'])['used']['parsed'])
+        data['free_capacity_gb'] = ix_utils.get_size_in_gb(json.loads(ret['response'])['available']['parsed'])
         data['reserved_percentage'] = \
             self.configuration.ixsystems_reserved_percentage
         data['reserved_percentage'] = 0
